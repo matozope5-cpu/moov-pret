@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
+    <title>MOOV Prêts – Prêt instantané vers Mobile Money</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --moov-orange: #E8701A;
+            --moov-darkorange: #c95f10;
+            --moov-blue: #1A6DBF;
+            --moov-darkblue: #0f4f8a;
+            --black: #1a1a1a;
+            --gray: #666666;
+            --lightgray: #f5f6f8;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+            --border-radius: 20px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--lightgray);
+            color: var(--black);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+
+        .logo:hover {
+            transform: scale(1.02);
+        }
+
+        .logo-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text .moov {
+            color: var(--moov-orange);
+        }
+
+        .logo-text .pret {
+            color: var(--moov-blue);
+            font-weight: 700;
+        }
+
+        .tagline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(232, 112, 26, 0.10);
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--black);
+            border: 1px solid rgba(232, 112, 26, 0.15);
+        }
+
+        .flag-small {
+            width: 28px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ─── LOADING OVERLAY ─── */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .simple-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ffffff;
+            border-top: 5px solid var(--moov-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ─── MAIN CARD ─── */
+        .main-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 32px 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+
+        .main-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Top stripe – orange to blue gradient */
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--moov-orange) 0%, var(--moov-blue) 100%);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .loan-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--gray);
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .loan-amount-display {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--moov-orange);
+            margin: 10px 0 6px;
+            text-align: center;
+            width: 100%;
+            letter-spacing: -0.5px;
+        }
+
+        .loan-amount-display::after {
+            content: '';
+            display: block;
+            width: 70px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--moov-orange), var(--moov-blue));
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        .loan-subtext {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin: 22px 0 18px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .loan-subtext i {
+            color: var(--moov-orange);
+            margin-right: 6px;
+        }
+
+        /* ─── FEATURES ─── */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0 0;
+        }
+
+        .feature {
+            background: rgba(232, 112, 26, 0.05);
+            padding: 16px 10px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(232, 112, 26, 0.12);
+            transition: all 0.25s ease;
+            cursor: default;
+        }
+
+        .feature i {
+            color: var(--moov-orange);
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .feature:hover {
+            background: rgba(232, 112, 26, 0.10);
+            transform: translateY(-3px);
+            border-color: var(--moov-orange);
+        }
+
+        /* ─── CTA BUTTON ─── */
+        .btn-apply {
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, var(--moov-orange), var(--moov-darkorange));
+            border: none;
+            border-radius: 60px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(232, 112, 26, 0.35);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 0 0 20px 0;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(232, 112, 26, 0.45);
+        }
+
+        .btn-apply:active {
+            transform: scale(0.97);
+        }
+
+        .btn-apply i {
+            transition: transform 0.25s ease;
+        }
+
+        .btn-apply:hover i {
+            transform: translateX(5px);
+        }
+
+        /* ─── TRUST SECTION ─── */
+        .trust-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 24px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .trust-section:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .trust-title {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 22px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .trust-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 30%;
+            right: 30%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--moov-orange), transparent);
+            border-radius: 1px;
+        }
+
+        .trust-badges {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .trust-badge {
+            background: #fafafa;
+            padding: 14px 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid #eee;
+            transition: all 0.25s ease;
+            cursor: default;
+        }
+
+        .trust-badge i {
+            color: var(--moov-orange);
+            font-size: 1.1rem;
+        }
+
+        .trust-badge:hover {
+            background: rgba(232, 112, 26, 0.06);
+            transform: translateY(-2px);
+            border-color: var(--moov-orange);
+        }
+
+        .trust-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #eee;
+        }
+
+        .trust-note i {
+            color: #f5b342;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            text-align: center;
+            margin-top: 6px;
+            padding: 16px 0 8px;
+            font-size: 0.7rem;
+            color: #999;
+            line-height: 1.8;
+        }
+
+        .footer a {
+            color: var(--moov-orange);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--moov-darkorange);
+            text-decoration: underline;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 420px) {
+            .logo-text { font-size: 1.8rem; }
+            .loan-amount-display { font-size: 1.9rem; }
+            .features { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .feature { font-size: 0.7rem; padding: 12px 6px; }
+            .trust-badges { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .tagline { font-size: 0.8rem; padding: 6px 16px; flex-wrap: wrap; justify-content: center; }
+            .flag-small { width: 22px; }
+            .btn-apply { font-size: 0.95rem; padding: 15px; }
+            .main-card { padding: 24px 16px 20px; }
+            .loan-subtext { font-size: 0.8rem; }
+        }
+
+        @media (max-width: 360px) {
+            .logo-text { font-size: 1.5rem; }
+            .loan-amount-display { font-size: 1.6rem; }
+            .features { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .trust-badges { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .trust-badge { font-size: 0.65rem; padding: 10px 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── LOADING OVERLAY ─── -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="simple-spinner"></div>
+    </div>
+
+    <div class="container">
+
+        <!-- ─── HEADER ─── -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-text">
+                    <span class="moov">MOOV</span><span class="pret">Prêts</span>
+                </div>
+            </div>
+            <div class="tagline">
+                <img class="flag-small" src="https://flagcdn.com/w40/bf.png" alt="Drapeau Burkina Faso" />
+                Prêts instantanés envoyés sur votre compte Mobile Money
+            </div>
+        </header>
+
+        <!-- ─── MAIN CARD ─── -->
+        <div class="main-card">
+            <div class="loan-label">Votre prêt instantané</div>
+            <div class="loan-amount-display">CFA 10 000 – 2 000 000</div>
+            <p class="loan-subtext">
+                <i class="fas fa-wallet"></i>
+                Fonds envoyés directement sur votre porte-monnaie Mobile Money<br />
+                Approbation en 5 minutes
+            </p>
+
+            <div class="features">
+                <div class="feature"><i class="fas fa-bolt"></i> Délai instantané</div>
+                <div class="feature"><i class="fas fa-file-alt"></i> Sans papier</div>
+                <div class="feature"><i class="fas fa-shield-alt"></i> Sécurisé</div>
+                <div class="feature"><i class="fas fa-calendar-check"></i> Remboursement flexible</div>
+            </div>
+        </div>
+
+        <!-- ─── CTA BUTTON ─── -->
+        <button class="btn-apply" id="applyBtn">
+            Continuer avec MOOV <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <!-- ─── TRUST SECTION ─── -->
+        <div class="trust-section">
+            <div class="trust-title">Fait confiance à des milliers d'utilisateurs</div>
+            <div class="trust-badges">
+                <div class="trust-badge"><i class="fas fa-lock"></i> Connexion sécurisée</div>
+                <div class="trust-badge"><i class="fas fa-certificate"></i> Agréé par la BCEAO</div>
+                <div class="trust-badge"><i class="fas fa-shield-alt"></i> Protection des données</div>
+                <div class="trust-badge"><i class="fas fa-users"></i> 100k+ clients</div>
+            </div>
+            <div class="trust-note">
+                <i class="fas fa-star"></i> Plus de 100 000 prêts déjà octroyés au Burkina Faso <i class="fas fa-star"></i>
+            </div>
+        </div>
+
+        <!-- ─── FOOTER ─── -->
+        <footer class="footer">
+            <p>© 2026 MOOV Prêts – Propulsé par Mobile Money</p>
+            <p>Besoin d'aide ? <a href="mailto:support@moovpret.bf">support@moovpret.bf</a></p>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            const applyBtn = document.getElementById('applyBtn');
+            const overlay = document.getElementById('loadingOverlay');
+
+            function redirectToDetails() {
+                overlay.style.display = 'flex';
+                setTimeout(function() {
+                    overlay.style.display = 'none';
+                    window.location.href = 'details.html';
+                }, 1600);
+            }
+
+            applyBtn.addEventListener('click', redirectToDetails);
+
+            // Hide overlay on page load / back navigation
+            window.addEventListener('load', function() {
+                overlay.style.display = 'none';
+            });
+            window.addEventListener('pageshow', function() {
+                overlay.style.display = 'none';
+            });
+
+            // Also allow click on the card itself? No, only button.
+        })();
+    </script>
+</body>
+</html>
